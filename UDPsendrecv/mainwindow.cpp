@@ -35,24 +35,26 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyRead()));
     //Slot function, when inputDevice receives the audio data written by input, it calls the onReadyRead function to send the data to the target host
+    connect(inputDevice,SIGNAL(readyRead()),this,SLOT(readyRead()));
+    //Slot function, when outputDevice receives the audio data written by output, it calls the readyRead function
 }
-
 MainWindow::~MainWindow()
 {
     delete ui;
 }
-void MainWindow::RecvData()
+void MainWindow::readyRead()
 {
-    QByteArray baRecv;
-    while(m_qudpSocket->hasPendingDatagrams())
-    {
-        baRecv.resize(m_qudpSocket->pendingDatagramSize());
-        m_qudpSocket->readDatagram(baRecv.data(),baRecv.size());
-        QString strRecvData = baRecv;
-        ui->textEdit_2->setPlainText(strRecvData);
-        qDebug()<<baRecv.data();
-    }
-    qDebug()<<"break\n";
+    qDebug()<<"Audio is being received..."<<Qt::endl;
+    audioRecv vp;
+    memset(&vp,0,sizeof(vp));
+    QHostAddress sender;
+    quint16 senderPort;
+    socket->readDatagram((char*)&vp,sizeof(vp),&sender,&senderPort);
+    outputDevice->write(vp.audioDataRecv,vp.lensRecv);
+    //ui->textBrowser->setPlainText(sender.toString()+"\n"+vp.lensRecv+"\n"+senderPort);
+    qDebug() << "Message from: " << sender.toString();
+    qDebug() << "Message port: " << senderPort;
+    qDebug() << "Message: " << vp.audioDataRecv;
 }
 void MainWindow::onReadyRead()
 {
@@ -64,5 +66,3 @@ void MainWindow::onReadyRead()
     m_qudpSocket->writeDatagram((const char*)&ap,sizeof(ap),QHostAddress::LocalHost,1234);
     //Send this structure to the target host, the port is 1234, and the IP is 127.0.0.1
 }
-
-
