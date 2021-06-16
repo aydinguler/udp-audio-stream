@@ -23,12 +23,16 @@ public:
     QAudioInput *input;
     QAudioOutput *output;
     QIODevice *inputDevice, *outputDevice;
+    struct audioSend{
+        char audioDataSend[1024];
+        int lensSend;
+    };
 
 public slots:
 void RecvData();
 
 private slots:
-
+    void onReadyRead();
 
 private:
     Ui::MainWindow *ui;
