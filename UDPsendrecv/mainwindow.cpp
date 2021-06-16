@@ -55,16 +55,4 @@ void MainWindow::RecvData()
 }
 
 
-//Unicast
-void MainWindow::on_pushButton_clicked()
-{
-     m_qudpSocket->writeDatagram(ui->textEdit->toPlainText().toUtf8(),QHostAddress("127.0.0.1"),3956);
-}
-
-//Multicast
-void MainWindow::on_pushButton_2_clicked()
-{
-     m_qudpSocket->joinMulticastGroup(QHostAddress("224.0.0.10")); //Join multicast ip: 224.0.0.10
-     m_qudpSocket->writeDatagram(ui->textEdit->toPlainText().toUtf8(),QHostAddress("224.0.0.10"),3956);
-}
 
