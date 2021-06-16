@@ -21,6 +21,18 @@ MainWindow::MainWindow(QWidget *parent)
     m_qudpSocket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption,1024*1024*8);//Set buffer
     connect(m_qudpSocket,SIGNAL(readyRead()),this,SLOT(RecvData()));//Connect the receiving signal slot
 
+    QAudioFormat format;//Define the type of audio processing
+    format.setSampleRate(8000);//The acquisition frequency is 1s 8000 times
+    format.setChannelCount(1);//Set to 1 provincial highway
+    format.setSampleSize(16);//Set the sample size, 8 is also OK, but the sender and receiver must correspond
+    format.setCodec("audio/pcm");//Set to PCM encoding
+    format.setSampleType(QAudioFormat::SignedInt);
+    format.setByteOrder(QAudioFormat::LittleEndian);//Set the data type of Xiaowei
+    input = new QAudioInput(format,this);
+    inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
+    output = new QAudioOutput(format,this);
+    outputDevice = output->start();//Start playing
+
 
 }
 
