@@ -27,9 +27,13 @@ public:
         char audioDataSend[1024];
         int lensSend;
     };
+    struct audioRecv{
+        char audioDataRecv[1024];
+        int lensRecv;
+    };
 
 public slots:
-void RecvData();
+    void readyRead();
 
 private slots:
     void onReadyRead();
