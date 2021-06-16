@@ -33,7 +33,8 @@ MainWindow::MainWindow(QWidget *parent)
     output = new QAudioOutput(format,this);
     outputDevice = output->start();//Start playing
 
-
+    connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyRead()));
+    //Slot function, when inputDevice receives the audio data written by input, it calls the onReadyRead function to send the data to the target host
 }
 
 MainWindow::~MainWindow()
@@ -53,6 +54,15 @@ void MainWindow::RecvData()
     }
     qDebug()<<"break\n";
 }
-
+void MainWindow::onReadyRead()
+{
+    qDebug()<<"It's sending audio!"<<Qt::endl;
+    audioSend ap;
+    memset(&ap,0,sizeof(ap));
+    ap.lensSend = inputDevice->read(ap.audioDataSend,1024);//Read audio
+    qDebug() << ap.lensSend;
+    m_qudpSocket->writeDatagram((const char*)&ap,sizeof(ap),QHostAddress::LocalHost,1234);
+    //Send this structure to the target host, the port is 1234, and the IP is 127.0.0.1
+}
 
 
