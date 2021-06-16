@@ -40,6 +40,6 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    QUdpSocket  *m_qudpSocket;
+    QUdpSocket  *socket;
 };
 #endif // MAINWINDOW_H
