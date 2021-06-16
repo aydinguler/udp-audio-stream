@@ -6,20 +6,18 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-    m_qudpSocket = new QUdpSocket();
-
+    socket = new QUdpSocket();
+    socket->bind(QHostAddress::LocalHost,1234);//127.0.0.1
     //Unicast
     //quint16 nport = 3956;
     //QString strIP = "127.0.0.1";
     //m_qudpSocket->bind(QHostAddress(strIP),nport);//Bind the local receiver IP and port (for unicast reception)
     //connect(m_qudpSocket,SIGNAL(readyRead()),this,SLOT(RecvData()));
-
     //Multicast
-    m_qudpSocket->bind(QHostAddress::AnyIPv4,3956,QUdpSocket::ShareAddress);//Bind all ips to receive multicast group information
-    m_qudpSocket->joinMulticastGroup(QHostAddress("224.0.0.10"));//Join the multicast group ip: 224.0.0.10
-    m_qudpSocket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption,1024*1024*8);//Set buffer
-    connect(m_qudpSocket,SIGNAL(readyRead()),this,SLOT(RecvData()));//Connect the receiving signal slot
+    //m_qudpSocket->bind(QHostAddress::AnyIPv4,3956,QUdpSocket::ShareAddress);//Bind all ips to receive multicast group information
+    //m_qudpSocket->joinMulticastGroup(QHostAddress("224.0.0.10"));//Join the multicast group ip: 224.0.0.10
+    //m_qudpSocket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption,1024*1024*8);//Set buffer
+    //connect(m_qudpSocket,SIGNAL(readyRead()),this,SLOT(RecvData()));//Connect the receiving signal slot
 
     QAudioFormat format;//Define the type of audio processing
     format.setSampleRate(8000);//The acquisition frequency is 1s 8000 times
@@ -45,16 +43,17 @@ MainWindow::~MainWindow()
 void MainWindow::readyRead()
 {
     qDebug()<<"Audio is being received..."<<Qt::endl;
-    audioRecv vp;
-    memset(&vp,0,sizeof(vp));
+    audioRecv ap;
+    memset(&ap,0,sizeof(ap));
     QHostAddress sender;
     quint16 senderPort;
-    socket->readDatagram((char*)&vp,sizeof(vp),&sender,&senderPort);
-    outputDevice->write(vp.audioDataRecv,vp.lensRecv);
+    socket->readDatagram((char*)&ap,sizeof(ap),&sender,&senderPort);
+    outputDevice->write(ap.audioDataRecv,ap.lensRecv);
     //ui->textBrowser->setPlainText(sender.toString()+"\n"+vp.lensRecv+"\n"+senderPort);
     qDebug() << "Message from: " << sender.toString();
     qDebug() << "Message port: " << senderPort;
-    qDebug() << "Message: " << vp.audioDataRecv;
+    qDebug() << "Message size: " << ap.lensRecv;
+    qDebug() << "Message data: " << ap.audioDataRecv;
 }
 void MainWindow::onReadyRead()
 {
@@ -63,6 +62,6 @@ void MainWindow::onReadyRead()
     memset(&ap,0,sizeof(ap));
     ap.lensSend = inputDevice->read(ap.audioDataSend,1024);//Read audio
     qDebug() << ap.lensSend;
-    m_qudpSocket->writeDatagram((const char*)&ap,sizeof(ap),QHostAddress::LocalHost,1234);
+    socket->writeDatagram((const char*)&ap,sizeof(ap),QHostAddress::LocalHost,1234);
     //Send this structure to the target host, the port is 1234, and the IP is 127.0.0.1
 }
