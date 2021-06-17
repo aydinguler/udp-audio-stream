@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
     //connect(m_qudpSocket,SIGNAL(readyRead()),this,SLOT(RecvData()));//Connect the receiving signal slot
 
     QAudioFormat format;//Define the type of audio processing
-    format.setSampleRate(8000);//The acquisition frequency is 1s 8000 times
+    format.setSampleRate(16000);//The acquisition frequency is 1s 16000 times
     format.setChannelCount(1);//Set to 1 provincial highway
     format.setSampleSize(16);//Set the sample size, 8 is also OK, but the sender and receiver must correspond
     format.setCodec("audio/pcm");//Set to PCM encoding
@@ -60,8 +60,8 @@ void MainWindow::onReadyRead()
     qDebug()<<"It's sending audio!"<<Qt::endl;
     audioSend ap;
     memset(&ap,0,sizeof(ap));
-    ap.lensSend = inputDevice->read(ap.audioDataSend,1024);//Read audio
-    qDebug() << ap.lensSend;
+    ap.lensSend = inputDevice->read(ap.audioDataSend,1280);//Read audio
+    //qDebug() << ap.lensSend;
     socket->writeDatagram((const char*)&ap,sizeof(ap),QHostAddress::LocalHost,1234);
     //Send this structure to the target host, the port is 1234, and the IP is 127.0.0.1
 }
