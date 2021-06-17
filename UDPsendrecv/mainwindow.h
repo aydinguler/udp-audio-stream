@@ -24,11 +24,11 @@ public:
     QAudioOutput *output;
     QIODevice *inputDevice, *outputDevice;
     struct audioSend{
-        char audioDataSend[1024];
+        char audioDataSend[1280];
         int lensSend;
     };
     struct audioRecv{
-        char audioDataRecv[1024];
+        char audioDataRecv[1280];
         int lensRecv;
     };
 
