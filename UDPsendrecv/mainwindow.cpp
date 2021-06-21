@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QTimer>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -27,13 +28,14 @@ MainWindow::MainWindow(QWidget *parent)
     format.setSampleType(QAudioFormat::SignedInt);
     format.setByteOrder(QAudioFormat::LittleEndian);//Set the data type of Xiaowei
     input = new QAudioInput(format,this);
-    inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
+    //inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
     output = new QAudioOutput(format,this);
-    outputDevice = output->start();//Start playing
+    //outputDevice = output->start();//Start playing
+    timer = new QTimer(this);
 
-    connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyRead()));
+    //connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyRead()));
     //Slot function, when inputDevice receives the audio data written by input, it calls the onReadyRead function to send the data to the target host
-    connect(inputDevice,SIGNAL(readyRead()),this,SLOT(readyRead()));
+    //connect(inputDevice,SIGNAL(readyRead()),this,SLOT(readyRead()));
     //Slot function, when outputDevice receives the audio data written by output, it calls the readyRead function
 }
 MainWindow::~MainWindow()
@@ -49,7 +51,8 @@ void MainWindow::readyRead()
     quint16 senderPort;
     socket->readDatagram((char*)&ap,sizeof(ap),&sender,&senderPort);
     outputDevice->write(ap.audioDataRecv,ap.lensRecv);
-    //ui->textBrowser->setPlainText(sender.toString()+"\n"+vp.lensRecv+"\n"+senderPort);
+    //ui->textBrowser->setPlainText(sender.toString()+"\n"+senderPort+"\n"+ap.lensRecv+"\n"+ap.audioDataRecv+"\n");
+    ui->textBrowser->setPlainText(ap.audioDataRecv);
     qDebug() << "Message from: " << sender.toString();
     qDebug() << "Message port: " << senderPort;
     qDebug() << "Message size: " << ap.lensRecv;
@@ -62,6 +65,29 @@ void MainWindow::onReadyRead()
     memset(&ap,0,sizeof(ap));
     ap.lensSend = inputDevice->read(ap.audioDataSend,1280);//Read audio
     //qDebug() << ap.lensSend;
+    ui->textBrowser->setPlainText(ap.audioDataSend);
     socket->writeDatagram((const char*)&ap,sizeof(ap),QHostAddress::LocalHost,1234);
     //Send this structure to the target host, the port is 1234, and the IP is 127.0.0.1
 }
+void MainWindow::on_pushButton_clicked(bool checked)
+{
+    inputDevice = input->start();
+    timer->stop();
+    if (ui->comboBox->currentText() == "Sender" && ui->pushButton->isChecked()==true){
+        connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyRead()));
+        ui->pushButton->setText("Stop");
+    }
+    else if (ui->comboBox->currentText() == "Receiver" && ui->pushButton->isChecked()==true){
+        outputDevice = output->start();//Start playing
+        timer->start();
+        connect(timer,SIGNAL(timeout()),this,SLOT(readyRead()));
+        ui->pushButton->setText("Stop");
+    }
+    else{
+        ui->pushButton->setChecked(false);
+        ui->pushButton->setText("Start");
+        timer->stop();
+    }
+    qDebug() << checked;
+}
+
