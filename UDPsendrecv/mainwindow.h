@@ -8,6 +8,7 @@
 #include <QAudioInput>
 #include <QAudioOutput>
 #include <QIODevice>
+#include <QDebug>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -20,6 +21,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    QTimer *timer;
     QAudioInput *input;
     QAudioOutput *output;
     QIODevice *inputDevice, *outputDevice;
@@ -37,6 +39,8 @@ public slots:
 
 private slots:
     void onReadyRead();
+
+    void on_pushButton_clicked(bool checked);
 
 private:
     Ui::MainWindow *ui;
