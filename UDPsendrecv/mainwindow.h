@@ -9,6 +9,8 @@
 #include <QAudioOutput>
 #include <QIODevice>
 #include <QDebug>
+#include <QAudioDecoder>
+#include <QFile>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -21,7 +23,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    QTimer *timer;
+    QFile *m_file;
+    QAudioDecoder *decoder;
     QAudioInput *input;
     QAudioOutput *output;
     QIODevice *inputDevice, *outputDevice;
@@ -45,5 +48,8 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QUdpSocket  *socket;
+    QUdpSocket *senderSocket;
+    QHostAddress *targetAddress;
+    quint16 *targetPort;
 };
 #endif // MAINWINDOW_H
