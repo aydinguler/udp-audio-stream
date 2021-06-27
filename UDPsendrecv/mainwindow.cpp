@@ -26,6 +26,8 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+//Receive audio data from socket and play
 void MainWindow::readyRead()
 {
     qDebug()<<"Audio is being received..."<<Qt::endl;
@@ -44,6 +46,8 @@ void MainWindow::readyRead()
     //qDebug() << "Message size: " << QString::number(ap.lensRecv);
     //qDebug() << "Message data: " << ap.audioDataRecv;
 }
+
+//Read audio data from file and send it
 void MainWindow::onReadyRead()
 {
     qDebug()<<"It's sending audio!"<<Qt::endl;
@@ -57,6 +61,7 @@ void MainWindow::onReadyRead()
     senderSocket->writeDatagram((const char*)&ap,sizeof(ap),*targetAddress,*targetPort);
     //Send this structure to the target host, the port and the IP are declared in the if statements
 }
+
 //İf file could not open, then return a message
 void MainWindow::fileOpen()
 {
@@ -68,12 +73,14 @@ void MainWindow::fileOpen()
         return;
     }
 }
+
 //Set IP and Port for Multicast or Unicast sender
 void MainWindow::setIPAdressAndPortNumber(QString giveThisTargetAddress, quint16 giveThisTargetPort)
 {
     targetAddress = new QHostAddress(giveThisTargetAddress);
     targetPort = new quint16(giveThisTargetPort);
 }
+
 //Stop everyting until restart
 void MainWindow::stopStream()
 {
@@ -87,6 +94,8 @@ void MainWindow::stopStream()
     ui->pushButton_3->setChecked(false);
     ui->pushButton_3->setText("Pause");
 }
+
+//"İf statements" are declared here for different combinations of comboBoxes and buttons
 void MainWindow::on_pushButton_clicked(bool checked)
 {
     if (ui->comboBox->currentText() == "Sender"
