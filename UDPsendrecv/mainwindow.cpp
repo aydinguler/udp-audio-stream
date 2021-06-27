@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QMessageBox>
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -9,9 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     senderSocket = new QUdpSocket(this);
     socket = new QUdpSocket(this);
-
     file = new QFile(this);
-    file->setFileName("C:/Users/aydin/Desktop/example16kHzMono.wav");
 
     QAudioFormat format;//Define the type of audio processing
     format.setSampleRate(16000);//The acquisition frequency is 1s 16000 times
@@ -135,5 +134,13 @@ void MainWindow::on_pushButton_clicked(bool checked)
         ui->pushButton->setText("Start");
     }
     qDebug() << checked;
+}
+
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    QString filter = "Audio File (*.wav)";
+    QString fileName = QFileDialog::getOpenFileName(this, "Open a file", "C://", filter);
+    file->setFileName(fileName);
 }
 
