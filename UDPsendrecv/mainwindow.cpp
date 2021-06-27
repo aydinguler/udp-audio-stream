@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -9,10 +10,13 @@ MainWindow::MainWindow(QWidget *parent)
     senderSocket = new QUdpSocket(this);
     socket = new QUdpSocket(this);
 
+    file = new QFile(this);
+    file->setFileName("C:/Users/aydin/Desktop/example16kHzMono.wav");
+
     QAudioFormat format;//Define the type of audio processing
     format.setSampleRate(16000);//The acquisition frequency is 1s 16000 times
-    format.setChannelCount(1);//Set to 1 provincial highway
-    format.setSampleSize(16);//Set the sample size, 8 is also OK, but the sender and receiver must correspond
+    format.setChannelCount(1);//Set to 1 channel
+    format.setSampleSize(16);//Set the sample size, 8 is also OK, but the sender and receiver must match
     format.setCodec("audio/pcm");//Set to PCM encoding
     format.setSampleType(QAudioFormat::SignedInt);
     format.setByteOrder(QAudioFormat::LittleEndian);//Set the data type of Xiaowei
@@ -46,7 +50,9 @@ void MainWindow::onReadyRead()
     qDebug()<<"It's sending audio!"<<Qt::endl;
     audioSend ap;
     memset(&ap,0,sizeof(ap));
-    ap.lensSend = inputDevice->read(ap.audioDataSend,1280);//Read audio
+    QByteArray dummy;
+    dummy = inputDevice->readAll();
+    ap.lensSend = file->read(ap.audioDataSend,1280);//Read audio
     //qDebug() << ap.lensSend;
     ui->textBrowser->setPlainText(ap.audioDataSend);
     senderSocket->writeDatagram((const char*)&ap,sizeof(ap),*targetAddress,*targetPort);
@@ -58,6 +64,13 @@ void MainWindow::on_pushButton_clicked(bool checked)
             && (ui->comboBox_2->currentText() == "Unicast")
             && ui->pushButton->isChecked()==true)
     {
+        if (!file->open(QIODevice::ReadOnly))
+        {
+            QMessageBox msgBox;
+            msgBox.setText("File can not open");
+            msgBox.exec();
+            return;
+        }
         targetAddress = new QHostAddress("192.168.1.35");
         targetPort = new quint16(45000);
         inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
@@ -68,6 +81,13 @@ void MainWindow::on_pushButton_clicked(bool checked)
              && (ui->comboBox_2->currentText() == "Multicast")
              && ui->pushButton->isChecked()==true)
     {
+        if (!file->open(QIODevice::ReadOnly))
+        {
+            QMessageBox msgBox;
+            msgBox.setText("File can not open");
+            msgBox.exec();
+            return;
+        }
         targetAddress = new QHostAddress("224.0.0.2");
         targetPort = new quint16(9999);
         inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
@@ -110,6 +130,7 @@ void MainWindow::on_pushButton_clicked(bool checked)
         senderSocket->close();
         output->stop();
         input->stop();
+        file->close();
         ui->pushButton->setChecked(false);
         ui->pushButton->setText("Start");
     }
