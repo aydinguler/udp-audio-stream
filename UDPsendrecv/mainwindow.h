@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QUdpSocket>//Note: You must first operate 3 and then 4, otherwise the system will prompt no such file or directory
+#include <QUdpSocket>
 #include <QAudio>//These five are QT's audio processing libraries
 #include <QAudioFormat>
 #include <QAudioInput>
@@ -23,17 +23,17 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    QFile *m_file;
+    QFile *file;
     QAudioDecoder *decoder;
     QAudioInput *input;
     QAudioOutput *output;
     QIODevice *inputDevice, *outputDevice;
     struct audioSend{
-        char audioDataSend[1280];
+        char audioDataSend[7680];
         int lensSend;
     };
     struct audioRecv{
-        char audioDataRecv[1280];
+        char audioDataRecv[7680];
         int lensRecv;
     };
 
