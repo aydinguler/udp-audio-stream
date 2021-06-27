@@ -57,21 +57,44 @@ void MainWindow::onReadyRead()
     senderSocket->writeDatagram((const char*)&ap,sizeof(ap),*targetAddress,*targetPort);
     //Send this structure to the target host, the port and the IP are declared in the if statements
 }
+//İf file could not open, then return a message
+void MainWindow::fileOpen()
+{
+    if (!file->open(QIODevice::ReadOnly))
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Choose a file to start streaming");
+        msgBox.exec();
+        return;
+    }
+}
+//Set IP and Port for Multicast or Unicast sender
+void MainWindow::setIPAdressAndPortNumber(QString giveThisTargetAddress, quint16 giveThisTargetPort)
+{
+    targetAddress = new QHostAddress(giveThisTargetAddress);
+    targetPort = new quint16(giveThisTargetPort);
+}
+//Stop everyting until restart
+void MainWindow::stopStream()
+{
+    file->close();
+    socket->close();
+    senderSocket->close();
+    output->stop();
+    input->stop();
+    ui->pushButton->setChecked(false);
+    ui->pushButton->setText("Start");
+    ui->pushButton_3->setChecked(false);
+    ui->pushButton_3->setText("Pause");
+}
 void MainWindow::on_pushButton_clicked(bool checked)
 {
     if (ui->comboBox->currentText() == "Sender"
             && (ui->comboBox_2->currentText() == "Unicast")
             && ui->pushButton->isChecked()==true)
     {
-        if (!file->open(QIODevice::ReadOnly))
-        {
-            QMessageBox msgBox;
-            msgBox.setText("File can not open");
-            msgBox.exec();
-            return;
-        }
-        targetAddress = new QHostAddress("192.168.1.35");
-        targetPort = new quint16(45000);
+        MainWindow::fileOpen();
+        MainWindow::setIPAdressAndPortNumber("192.168.1.39",45000);
         inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
         connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyRead()));//Slot function, when inputDevice receives the audio data written by input,
         ui->pushButton->setText("Stop");                                  //it calls the onReadyRead function to send the data to the target host
@@ -80,15 +103,8 @@ void MainWindow::on_pushButton_clicked(bool checked)
              && (ui->comboBox_2->currentText() == "Multicast")
              && ui->pushButton->isChecked()==true)
     {
-        if (!file->open(QIODevice::ReadOnly))
-        {
-            QMessageBox msgBox;
-            msgBox.setText("File can not open");
-            msgBox.exec();
-            return;
-        }
-        targetAddress = new QHostAddress("224.0.0.2");
-        targetPort = new quint16(9999);
+        MainWindow::fileOpen();
+        MainWindow::setIPAdressAndPortNumber("224.0.0.2",9999);
         inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
         connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyRead()));//Slot function, when inputDevice receives the audio data written by input,
         ui->pushButton->setText("Stop");                                  //it calls the onReadyRead function to send the data to the target host
@@ -101,6 +117,7 @@ void MainWindow::on_pushButton_clicked(bool checked)
         socket->bind(QHostAddress::AnyIPv4,45000);
         connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));//Slot function, when socket has data sent by onReadyRead function,
         ui->pushButton->setText("Stop");                           //it calls the readyRead function to receive the data
+        ui->pushButton_3->setVisible(false);
     }
     else if (ui->comboBox->currentText() == "Receiver"
              && ui->comboBox_2->currentText() == "Multicast"
@@ -112,35 +129,52 @@ void MainWindow::on_pushButton_clicked(bool checked)
         connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));//Slot function, when socket has data sent by onReadyRead function,
         ui->pushButton->setText("Stop");                           //it calls the readyRead function to receive the data
     }
-    else if (ui->comboBox->currentText() == "Receiver"
-             && ui->comboBox_2->currentText() == "Multicast"
-             && ui->pushButton->isChecked()==false)
-    {
-        socket->leaveMulticastGroup(QHostAddress("224.0.0.2"));//Leave the multicast group ip: 224.0.0.2
-        socket->close();
-        senderSocket->close();
-        output->stop();
-        input->stop();
-        ui->pushButton->setChecked(false);
-        ui->pushButton->setText("Start");
-    }
     else{
-        socket->close();
-        senderSocket->close();
-        output->stop();
-        input->stop();
-        file->close();
-        ui->pushButton->setChecked(false);
-        ui->pushButton->setText("Start");
+        socket->leaveMulticastGroup(QHostAddress("224.0.0.2"));//Leave the multicast group ip: 224.0.0.2
+        MainWindow::stopStream();
     }
     qDebug() << checked;
 }
 
-
+//User can choose a local file with QFileDialog
 void MainWindow::on_pushButton_2_clicked()
 {
     QString filter = "Audio File (*.wav)";
     QString fileName = QFileDialog::getOpenFileName(this, "Open a file", "C://", filter);
     file->setFileName(fileName);
+}
+
+//Pause button: When clicked, the text turns into "Resume" and it stays like that until "Resume" button is clicked
+void MainWindow::on_pushButton_3_clicked()
+{
+    if (ui->pushButton_3->isChecked()==true){
+        input->stop();
+        ui->pushButton_3->setText("Resume");
+    }
+    else if(ui->comboBox->currentText() == "Sender"
+            && (ui->comboBox_2->currentText() == "Multicast"||"Unicast")
+            && ui->pushButton->isChecked()==true
+            && ui->pushButton_3->isChecked()==false)
+    {
+        inputDevice = input->start();
+        connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyRead()));
+        ui->pushButton_3->setText("Pause");
+    }
+    else{
+        ui->pushButton_3->setText("Pause");
+    }
+}
+
+//When receiver selected, make "Choose File" and "Pause/Resume" buttons unvisible
+void MainWindow::on_comboBox_activated()
+{
+    if(ui->comboBox->currentText() == "Receiver"){
+        ui->pushButton_2->setVisible(false);
+        ui->pushButton_3->setVisible(false);
+    }
+    else{
+        ui->pushButton_2->setVisible(true);
+        ui->pushButton_3->setVisible(true);
+    }
 }
 
