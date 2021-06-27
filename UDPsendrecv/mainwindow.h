@@ -23,11 +23,6 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    QFile *file;
-    QAudioDecoder *decoder;
-    QAudioInput *input;
-    QAudioOutput *output;
-    QIODevice *inputDevice, *outputDevice;
     struct audioSend{
         char audioDataSend[7680];
         int lensSend;
@@ -37,18 +32,28 @@ public:
         int lensRecv;
     };
 
+    void stopStream();
+    void fileOpen();
+    void setIPAdressAndPortNumber(QString giveThisTargetAddress, quint16 giveThisTargetPort);
+
 public slots:
     void readyRead();
 
 private slots:
     void onReadyRead();
-
     void on_pushButton_clicked(bool checked);
-
     void on_pushButton_2_clicked();
+    void on_pushButton_3_clicked();
+
+    void on_comboBox_activated();
 
 private:
     Ui::MainWindow *ui;
+    QFile *file;
+    QAudioDecoder *decoder;
+    QAudioInput *input;
+    QAudioOutput *output;
+    QIODevice *inputDevice, *outputDevice;
     QUdpSocket  *socket;
     QUdpSocket *senderSocket;
     QHostAddress *targetAddress;
