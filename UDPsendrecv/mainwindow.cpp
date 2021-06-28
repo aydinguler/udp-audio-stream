@@ -161,7 +161,7 @@ void MainWindow::on_pushButton_clicked(bool checked)
 //User can choose a local file with QFileDialog
 void MainWindow::on_pushButton_2_clicked()
 {
-    QString filter = "Audio File (*.wav)";
+    QString filter = "Audio File (*.wav *.bin)";
     QString fileName = QFileDialog::getOpenFileName(this, "Open a file", "C://", filter);
     file->setFileName(fileName);
 }
