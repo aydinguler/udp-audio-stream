@@ -34,6 +34,7 @@ public:
 
     void stopStream();
     void fileOpen();
+    QString getIPAddressFromUser();
     void setIPAdressAndPortNumber(QString giveThisTargetAddress, quint16 giveThisTargetPort);
 
 public slots:
@@ -44,7 +45,6 @@ private slots:
     void on_pushButton_clicked(bool checked);
     void on_pushButton_2_clicked();
     void on_pushButton_3_clicked();
-
     void on_comboBox_activated();
 
 private:
