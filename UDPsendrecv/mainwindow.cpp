@@ -21,6 +21,8 @@ MainWindow::MainWindow(QWidget *parent)
     format.setByteOrder(QAudioFormat::LittleEndian);//Set the data type of Xiaowei
     input = new QAudioInput(format,this);
     output = new QAudioOutput(format,this);
+
+    connect(ui->comboBox_2,SIGNAL(activated(int)),this,SLOT(on_comboBox_activated()));
 }
 MainWindow::~MainWindow()
 {
@@ -74,6 +76,18 @@ void MainWindow::fileOpen()
     }
 }
 
+QString MainWindow::getIPAddressFromUser()
+{
+    if(!ui->lineEdit->isModified()){
+        QMessageBox msgBox;
+        msgBox.setText("Enter a valid target IP to start streaming");
+        msgBox.exec();
+        return 0;
+    }
+    QString enteredIP = ui->lineEdit->text();
+    return enteredIP;
+}
+
 //Set IP and Port for Multicast or Unicast sender
 void MainWindow::setIPAdressAndPortNumber(QString giveThisTargetAddress, quint16 giveThisTargetPort)
 {
@@ -103,7 +117,7 @@ void MainWindow::on_pushButton_clicked(bool checked)
             && ui->pushButton->isChecked()==true)
     {
         MainWindow::fileOpen();
-        MainWindow::setIPAdressAndPortNumber("192.168.1.39",45000);
+        MainWindow::setIPAdressAndPortNumber(MainWindow::getIPAddressFromUser(),45000);
         inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
         connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyRead()));//Slot function, when inputDevice receives the audio data written by input,
         ui->pushButton->setText("Stop");                                  //it calls the onReadyRead function to send the data to the target host
@@ -126,7 +140,6 @@ void MainWindow::on_pushButton_clicked(bool checked)
         socket->bind(QHostAddress::AnyIPv4,45000);
         connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));//Slot function, when socket has data sent by onReadyRead function,
         ui->pushButton->setText("Stop");                           //it calls the readyRead function to receive the data
-        ui->pushButton_3->setVisible(false);
     }
     else if (ui->comboBox->currentText() == "Receiver"
              && ui->comboBox_2->currentText() == "Multicast"
@@ -156,7 +169,9 @@ void MainWindow::on_pushButton_2_clicked()
 //Pause button: When clicked, the text turns into "Resume" and it stays like that until "Resume" button is clicked
 void MainWindow::on_pushButton_3_clicked()
 {
-    if (ui->pushButton_3->isChecked()==true){
+    if (ui->pushButton_3->isChecked()==true
+            && ui->comboBox->currentText() == "Sender"
+            && (ui->comboBox_2->currentText() == "Multicast"||"Unicast")){
         input->stop();
         ui->pushButton_3->setText("Resume");
     }
@@ -169,21 +184,60 @@ void MainWindow::on_pushButton_3_clicked()
         connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyRead()));
         ui->pushButton_3->setText("Pause");
     }
+    else if(ui->comboBox->currentText() == "Receiver"
+            && (ui->comboBox_2->currentText() == "Multicast"||"Unicast")
+            && ui->pushButton->isChecked()==true
+            && ui->pushButton_3->isChecked()==true)
+    {
+        output->suspend();
+        ui->pushButton_3->setText("Resume");
+    }
+    else if(ui->comboBox->currentText() == "Receiver"
+            && (ui->comboBox_2->currentText() == "Multicast"||"Unicast")
+            && ui->pushButton->isChecked()==true
+            && ui->pushButton_3->isChecked()==false)
+    {
+        output->resume();
+        connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));
+        ui->pushButton_3->setText("Pause");
+    }
     else{
         ui->pushButton_3->setText("Pause");
     }
 }
 
-//When receiver selected, make "Choose File" and "Pause/Resume" buttons unvisible
+//When receiver selected, make "Choose File" button unvisible
+//Also, when sender sender and multicast selected, make "Enter Target IP" linEdit area visible
 void MainWindow::on_comboBox_activated()
 {
-    if(ui->comboBox->currentText() == "Receiver"){
-        ui->pushButton_2->setVisible(false);
-        ui->pushButton_3->setVisible(false);
+    if(ui->comboBox->currentText() == "Sender"
+            && ui->comboBox_2->currentText() == "Unicast"){
+        ui->pushButton_2->setVisible(true);
+        ui->lineEdit->setVisible(true);
+    }
+    else if (ui->comboBox->currentText() == "Sender"
+             && ui->comboBox_2->currentText() == "Multicast"){
+        ui->pushButton_2->setVisible(true);
+        ui->lineEdit->setVisible(false);
+    }
+    else if ((ui->comboBox->currentText() == "Choose Type" || "Sender" || "Receiver")
+             && ui->comboBox_2->currentText() == "Choose Cast"){
+        ui->pushButton_2->setVisible(true);
+        ui->lineEdit->setVisible(true);
+    }
+    else if (ui->comboBox->currentText() == "Choose Type"
+             && ui->comboBox_2->currentText() == "Unicast"){
+        ui->pushButton_2->setVisible(true);
+        ui->lineEdit->setVisible(true);
+    }
+    else if (ui->comboBox->currentText() == "Choose Type"
+             && ui->comboBox_2->currentText() == "Multicast"){
+        ui->pushButton_2->setVisible(true);
+        ui->lineEdit->setVisible(true);
     }
     else{
-        ui->pushButton_2->setVisible(true);
-        ui->pushButton_3->setVisible(true);
+        ui->pushButton_2->setVisible(false);
+        ui->lineEdit->setVisible(false);
     }
 }
 
