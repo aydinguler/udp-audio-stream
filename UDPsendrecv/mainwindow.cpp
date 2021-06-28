@@ -198,7 +198,7 @@ void MainWindow::on_pushButton_3_clicked()
             && ui->pushButton_3->isChecked()==false)
     {
         output->resume();
-        connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));
+        //connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));
         ui->pushButton_3->setText("Pause");
     }
     else{
@@ -218,6 +218,11 @@ void MainWindow::on_comboBox_activated()
     else if (ui->comboBox->currentText() == "Sender"
              && ui->comboBox_2->currentText() == "Multicast"){
         ui->pushButton_2->setVisible(true);
+        ui->lineEdit->setVisible(false);
+    }
+    else if ((ui->comboBox->currentText() == "Receiver")
+             && ui->comboBox_2->currentText() == "Choose Cast"){
+        ui->pushButton_2->setVisible(false);
         ui->lineEdit->setVisible(false);
     }
     else if ((ui->comboBox->currentText() == "Choose Type" || "Sender" || "Receiver")
