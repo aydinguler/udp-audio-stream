@@ -65,20 +65,24 @@ void MainWindow::onReadyRead()
 }
 
 //İf file could not open, then return a message
-void MainWindow::fileOpen()
+bool MainWindow::fileOpen()
 {
     if (!file->open(QIODevice::ReadOnly))
     {
+        ui->pushButton->setChecked(false);
         QMessageBox msgBox;
         msgBox.setText("Choose a file to start streaming");
         msgBox.exec();
-        return;
+        return 1;
     }
+    return 0;
 }
 
 QString MainWindow::getIPAddressFromUser()
 {
-    if(!ui->lineEdit->isModified()){
+    if(!ui->lineEdit->isModified())
+    {
+        ui->pushButton->setChecked(false);
         QMessageBox msgBox;
         msgBox.setText("Enter a valid target IP to start streaming");
         msgBox.exec();
@@ -114,9 +118,10 @@ void MainWindow::on_pushButton_clicked(bool checked)
 {
     if (ui->comboBox->currentText() == "Sender"
             && (ui->comboBox_2->currentText() == "Unicast")
-            && ui->pushButton->isChecked()==true)
+            && ui->pushButton->isChecked()==true
+            && MainWindow::fileOpen()==0)
     {
-        MainWindow::fileOpen();
+        //MainWindow::fileOpen();
         MainWindow::setIPAdressAndPortNumber(MainWindow::getIPAddressFromUser(),45000);
         inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
         connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyRead()));//Slot function, when inputDevice receives the audio data written by input,
@@ -124,9 +129,10 @@ void MainWindow::on_pushButton_clicked(bool checked)
     }
     else if (ui->comboBox->currentText() == "Sender"
              && (ui->comboBox_2->currentText() == "Multicast")
-             && ui->pushButton->isChecked()==true)
+             && ui->pushButton->isChecked()==true
+             && MainWindow::fileOpen()==0)
     {
-        MainWindow::fileOpen();
+        //MainWindow::fileOpen();
         MainWindow::setIPAdressAndPortNumber("224.0.0.2",9999);
         inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
         connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyRead()));//Slot function, when inputDevice receives the audio data written by input,
@@ -150,6 +156,22 @@ void MainWindow::on_pushButton_clicked(bool checked)
         socket->joinMulticastGroup(QHostAddress("224.0.0.2"));//Join the multicast group ip: 224.0.0.2
         connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));//Slot function, when socket has data sent by onReadyRead function,
         ui->pushButton->setText("Stop");                           //it calls the readyRead function to receive the data
+    }
+    else if (ui->comboBox->currentText() == "Choose Type"
+             && ui->pushButton->isChecked()==true)
+    {
+        ui->pushButton->setChecked(false);
+        QMessageBox msgBox;
+        msgBox.setText("Please choose type");
+        msgBox.exec();
+    }
+    else if (ui->comboBox_2->currentText() == "Choose Cast"
+             && ui->pushButton->isChecked()==true)
+    {
+        ui->pushButton->setChecked(false);
+        QMessageBox msgBox;
+        msgBox.setText("Please choose cast");
+        msgBox.exec();
     }
     else{
         socket->leaveMulticastGroup(QHostAddress("224.0.0.2"));//Leave the multicast group ip: 224.0.0.2
