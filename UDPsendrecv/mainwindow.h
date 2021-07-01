@@ -33,7 +33,7 @@ public:
     };
 
     void stopStream();
-    void fileOpen();
+    bool fileOpen();
     QString getIPAddressFromUser();
     void setIPAdressAndPortNumber(QString giveThisTargetAddress, quint16 giveThisTargetPort);
 
