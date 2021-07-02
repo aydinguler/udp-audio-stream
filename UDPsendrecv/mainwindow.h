@@ -32,6 +32,7 @@ public:
         int lensRecv;
     };
 
+    void makeUIElementsInvisible();
     void stopStream();
     bool fileOpen();
     QString getIPAddressFromUser();
@@ -41,7 +42,8 @@ public slots:
     void readyRead();
 
 private slots:
-    void onReadyRead();
+    void onReadyReadFileStream();
+    void onReadyReadLiveStream();
     void on_pushButton_clicked(bool checked);
     void on_pushButton_2_clicked();
     void on_pushButton_3_clicked();
