@@ -14,101 +14,119 @@
    <string>Audio Stream</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout_2">
-    <item row="0" column="0">
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="1">
-       <widget class="QComboBox" name="comboBox">
-        <item>
-         <property name="text">
-          <string>Choose Type</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Sender</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Receiver</string>
-         </property>
-        </item>
-       </widget>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="1">
+     <widget class="QComboBox" name="comboBox_3">
+      <item>
+       <property name="text">
+        <string>Choose Stream Type</string>
+       </property>
       </item>
-      <item row="0" column="2">
-       <widget class="QLineEdit" name="lineEdit">
-        <property name="text">
-         <string>Enter Target IP</string>
-        </property>
-       </widget>
+      <item>
+       <property name="text">
+        <string>Live Stream</string>
+       </property>
       </item>
-      <item row="0" column="3">
-       <widget class="QComboBox" name="comboBox_2">
-        <item>
-         <property name="text">
-          <string>Choose Cast</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Unicast</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Multicast</string>
-         </property>
-        </item>
-       </widget>
+      <item>
+       <property name="text">
+        <string>File Stream</string>
+       </property>
       </item>
-      <item row="1" column="1">
-       <widget class="QPushButton" name="pushButton_2">
-        <property name="text">
-         <string>Choose File</string>
-        </property>
-       </widget>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QComboBox" name="comboBox">
+      <item>
+       <property name="text">
+        <string>Choose Type</string>
+       </property>
       </item>
-      <item row="1" column="2">
-       <widget class="QPushButton" name="pushButton">
-        <property name="text">
-         <string>Start</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-        <property name="autoRepeat">
-         <bool>false</bool>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
-        </property>
-       </widget>
+      <item>
+       <property name="text">
+        <string>Sender</string>
+       </property>
       </item>
-      <item row="1" column="3">
-       <widget class="QPushButton" name="pushButton_3">
-        <property name="text">
-         <string>Pause</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
+      <item>
+       <property name="text">
+        <string>Receiver</string>
+       </property>
       </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Data:</string>
-        </property>
-       </widget>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QComboBox" name="comboBox_2">
+      <item>
+       <property name="text">
+        <string>Choose Cast</string>
+       </property>
       </item>
-      <item row="2" column="1" colspan="3">
-       <widget class="QTextBrowser" name="textBrowser"/>
+      <item>
+       <property name="text">
+        <string>Unicast</string>
+       </property>
       </item>
-     </layout>
+      <item>
+       <property name="text">
+        <string>Multicast</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item row="2" column="2" colspan="2">
+     <widget class="QLineEdit" name="lineEdit">
+      <property name="text">
+       <string>Enter Target IP</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QPushButton" name="pushButton_2">
+      <property name="text">
+       <string>Choose File</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="2">
+     <widget class="QPushButton" name="pushButton">
+      <property name="text">
+       <string>Start</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+      <property name="autoRepeat">
+       <bool>false</bool>
+      </property>
+      <property name="autoExclusive">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="3">
+     <widget class="QPushButton" name="pushButton_3">
+      <property name="text">
+       <string>Pause</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Data:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1" colspan="3">
+     <widget class="QTextBrowser" name="textBrowser"/>
     </item>
    </layout>
   </widget>
