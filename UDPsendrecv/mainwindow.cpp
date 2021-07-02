@@ -321,11 +321,6 @@ void MainWindow::on_comboBox_activated()
         }
     }
     else{
-        ui->pushButton->setVisible(false);
-        ui->pushButton_2->setVisible(false);
-        ui->pushButton_3->setVisible(false);
-        ui->comboBox->setVisible(false);
-        ui->comboBox_2->setVisible(false);
-        ui->lineEdit->setVisible(false);
+        MainWindow::makeUIElementsInvisible();
     }
 }
