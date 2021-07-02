@@ -22,7 +22,10 @@ MainWindow::MainWindow(QWidget *parent)
     input = new QAudioInput(format,this);
     output = new QAudioOutput(format,this);
 
+    MainWindow::makeUIElementsInvisible();
+
     connect(ui->comboBox_2,SIGNAL(activated(int)),this,SLOT(on_comboBox_activated()));
+    connect(ui->comboBox_3,SIGNAL(activated(int)),this,SLOT(on_comboBox_activated()));
 }
 MainWindow::~MainWindow()
 {
@@ -50,7 +53,7 @@ void MainWindow::readyRead()
 }
 
 //Read audio data from file and send it
-void MainWindow::onReadyRead()
+void MainWindow::onReadyReadFileStream()
 {
     qDebug()<<"It's sending audio!"<<Qt::endl;
     audioSend ap;
@@ -62,6 +65,29 @@ void MainWindow::onReadyRead()
     ui->textBrowser->setPlainText(ap.audioDataSend);
     senderSocket->writeDatagram((const char*)&ap,sizeof(ap),*targetAddress,*targetPort);
     //Send this structure to the target host, the port and the IP are declared in the if statements
+}
+
+//Read audio data from inputDevice and send it
+void MainWindow::onReadyReadLiveStream()
+{
+    qDebug()<<"It's sending audio!"<<Qt::endl;
+    audioSend ap;
+    memset(&ap,0,sizeof(ap));
+    ap.lensSend = inputDevice->read(ap.audioDataSend,1280);//Read audio
+    //qDebug() << ap.lensSend;
+    ui->textBrowser->setPlainText(ap.audioDataSend);
+    senderSocket->writeDatagram((const char*)&ap,sizeof(ap),*targetAddress,*targetPort);
+    //Send this structure to the target host, the port and the IP are declared in the if statements
+}
+
+void MainWindow::makeUIElementsInvisible()
+{
+    ui->pushButton->setVisible(false);
+    ui->pushButton_2->setVisible(false);
+    ui->pushButton_3->setVisible(false);
+    ui->comboBox->setVisible(false);
+    ui->comboBox_2->setVisible(false);
+    ui->lineEdit->setVisible(false);
 }
 
 //İf file could not open, then return a message
@@ -118,24 +144,48 @@ void MainWindow::on_pushButton_clicked(bool checked)
 {
     if (ui->comboBox->currentText() == "Sender"
             && (ui->comboBox_2->currentText() == "Unicast")
+            && ui->comboBox_3->currentText() == "File Stream"
             && ui->pushButton->isChecked()==true
             && MainWindow::fileOpen()==0)
     {
         //MainWindow::fileOpen();
         MainWindow::setIPAdressAndPortNumber(MainWindow::getIPAddressFromUser(),45000);
         inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
-        connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyRead()));//Slot function, when inputDevice receives the audio data written by input,
+        connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyReadFileStream()));//Slot function, when inputDevice receives the audio data written by input,
         ui->pushButton->setText("Stop");                                  //it calls the onReadyRead function to send the data to the target host
     }
     else if (ui->comboBox->currentText() == "Sender"
              && (ui->comboBox_2->currentText() == "Multicast")
+             && ui->comboBox_3->currentText() == "File Stream"
              && ui->pushButton->isChecked()==true
              && MainWindow::fileOpen()==0)
     {
         //MainWindow::fileOpen();
         MainWindow::setIPAdressAndPortNumber("224.0.0.2",9999);
         inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
-        connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyRead()));//Slot function, when inputDevice receives the audio data written by input,
+        connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyReadFileStream()));//Slot function, when inputDevice receives the audio data written by input,
+        ui->pushButton->setText("Stop");                                  //it calls the onReadyRead function to send the data to the target host
+    }
+    else if (ui->comboBox->currentText() == "Sender"
+            && (ui->comboBox_2->currentText() == "Unicast")
+            && ui->comboBox_3->currentText() == "Live Stream"
+            && ui->pushButton->isChecked()==true)
+    {
+        //MainWindow::fileOpen();
+        MainWindow::setIPAdressAndPortNumber(MainWindow::getIPAddressFromUser(),45000);
+        inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
+        connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyReadLiveStream()));//Slot function, when inputDevice receives the audio data written by input,
+        ui->pushButton->setText("Stop");                                  //it calls the onReadyRead function to send the data to the target host
+    }
+    else if (ui->comboBox->currentText() == "Sender"
+             && (ui->comboBox_2->currentText() == "Multicast")
+             && ui->comboBox_3->currentText() == "Live Stream"
+             && ui->pushButton->isChecked()==true)
+    {
+        //MainWindow::fileOpen();
+        MainWindow::setIPAdressAndPortNumber("224.0.0.2",9999);
+        inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
+        connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyReadLiveStream()));//Slot function, when inputDevice receives the audio data written by input,
         ui->pushButton->setText("Stop");                                  //it calls the onReadyRead function to send the data to the target host
     }
     else if (ui->comboBox->currentText() == "Receiver"
@@ -203,7 +253,7 @@ void MainWindow::on_pushButton_3_clicked()
             && ui->pushButton_3->isChecked()==false)
     {
         inputDevice = input->start();
-        connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyRead()));
+        connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyReadFileStream()));
         ui->pushButton_3->setText("Pause");
     }
     else if(ui->comboBox->currentText() == "Receiver"
@@ -232,39 +282,50 @@ void MainWindow::on_pushButton_3_clicked()
 //Also, when sender sender and multicast selected, make "Enter Target IP" linEdit area visible
 void MainWindow::on_comboBox_activated()
 {
-    if(ui->comboBox->currentText() == "Sender"
-            && ui->comboBox_2->currentText() == "Unicast"){
+    if(ui->comboBox_3->currentText() == "File Stream"){
+        ui->pushButton->setVisible(true);
         ui->pushButton_2->setVisible(true);
-        ui->lineEdit->setVisible(true);
+        ui->pushButton_3->setVisible(true);
+        ui->comboBox->setVisible(true);
+        ui->comboBox_2->setVisible(true);
+        if(ui->comboBox->currentText() == "Sender"){
+            if(ui->comboBox_2->currentText() == "Unicast"){
+                ui->lineEdit->setVisible(true);
+            }
+            else if (ui->comboBox_2->currentText() == "Multicast"){
+                ui->lineEdit->setVisible(false);
+            }
+        }
+        else if(ui->comboBox->currentText() == "Receiver"){
+            ui->pushButton_2->setVisible(false);
+            ui->lineEdit->setVisible(false);
+        }
     }
-    else if (ui->comboBox->currentText() == "Sender"
-             && ui->comboBox_2->currentText() == "Multicast"){
-        ui->pushButton_2->setVisible(true);
-        ui->lineEdit->setVisible(false);
-    }
-    else if ((ui->comboBox->currentText() == "Receiver")
-             && ui->comboBox_2->currentText() == "Choose Cast"){
+    else if(ui->comboBox_3->currentText() == "Live Stream"){
+        ui->pushButton->setVisible(true);
         ui->pushButton_2->setVisible(false);
-        ui->lineEdit->setVisible(false);
-    }
-    else if ((ui->comboBox->currentText() == "Choose Type" || "Sender" || "Receiver")
-             && ui->comboBox_2->currentText() == "Choose Cast"){
-        ui->pushButton_2->setVisible(true);
-        ui->lineEdit->setVisible(true);
-    }
-    else if (ui->comboBox->currentText() == "Choose Type"
-             && ui->comboBox_2->currentText() == "Unicast"){
-        ui->pushButton_2->setVisible(true);
-        ui->lineEdit->setVisible(true);
-    }
-    else if (ui->comboBox->currentText() == "Choose Type"
-             && ui->comboBox_2->currentText() == "Multicast"){
-        ui->pushButton_2->setVisible(true);
-        ui->lineEdit->setVisible(true);
+        ui->pushButton_3->setVisible(false);
+        ui->comboBox->setVisible(true);
+        ui->comboBox_2->setVisible(true);
+        if(ui->comboBox->currentText() == "Sender"){
+            if(ui->comboBox_2->currentText() == "Unicast"){
+                ui->lineEdit->setVisible(true);
+            }
+            else if (ui->comboBox_2->currentText() == "Multicast"){
+                ui->lineEdit->setVisible(false);
+            }
+        }
+        else if(ui->comboBox->currentText() == "Receiver"){
+            ui->pushButton_2->setVisible(false);
+            ui->lineEdit->setVisible(false);
+        }
     }
     else{
+        ui->pushButton->setVisible(false);
         ui->pushButton_2->setVisible(false);
+        ui->pushButton_3->setVisible(false);
+        ui->comboBox->setVisible(false);
+        ui->comboBox_2->setVisible(false);
         ui->lineEdit->setVisible(false);
     }
 }
-
