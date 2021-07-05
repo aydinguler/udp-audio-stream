@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "settingsdialog.h"
 #include <QMessageBox>
 #include <QFileDialog>
 
@@ -328,3 +329,10 @@ void MainWindow::on_comboBox_activated()
         MainWindow::makeUIElementsInvisible();
     }
 }
+
+void MainWindow::on_actionOptions_triggered()
+{
+    mySettingsDialog = new settingsDialog(this);
+    mySettingsDialog->show();
+}
+

@@ -1,6 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "settingsdialog.h"
+
 #include <QMainWindow>
 #include <QUdpSocket>
 #include <QAudio>//These five are QT's audio processing libraries
@@ -50,8 +52,11 @@ private slots:
     void on_pushButton_3_clicked();
     void on_comboBox_activated();
 
+    void on_actionOptions_triggered();
+
 private:
     Ui::MainWindow *ui;
+    settingsDialog *mySettingsDialog;
     QAudioFormat *format;
     QFile *file;
     QAudioDecoder *decoder;
