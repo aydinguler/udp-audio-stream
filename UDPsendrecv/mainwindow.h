@@ -32,6 +32,7 @@ public:
         int lensRecv;
     };
 
+    void setAudioFormat();//int setThisSampleRate, int setThisChannelCount, int setThisSampleSize, const char setThisCodec, QString setThisSampleType, QString setThisByteOrder);
     void makeUIElementsInvisible();
     void stopStream();
     bool fileOpen();
@@ -51,6 +52,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    QAudioFormat *format;
     QFile *file;
     QAudioDecoder *decoder;
     QAudioInput *input;
