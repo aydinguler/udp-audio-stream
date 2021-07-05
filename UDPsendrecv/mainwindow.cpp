@@ -11,16 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     senderSocket = new QUdpSocket(this);
     socket = new QUdpSocket(this);
     file = new QFile(this);
-
-    QAudioFormat format;//Define the type of audio processing
-    format.setSampleRate(16000);//The acquisition frequency is 1s 16000 times
-    format.setChannelCount(1);//Set to 1 channel
-    format.setSampleSize(16);//Set the sample size, 8 is also OK, but the sender and receiver must match
-    format.setCodec("audio/pcm");//Set to PCM encoding
-    format.setSampleType(QAudioFormat::SignedInt);
-    format.setByteOrder(QAudioFormat::LittleEndian);//Set the data type of Xiaowei
-    input = new QAudioInput(format,this);
-    output = new QAudioOutput(format,this);
+    format = new QAudioFormat();//Define the type of audio processing
 
     MainWindow::makeUIElementsInvisible();
 
@@ -30,6 +21,18 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::setAudioFormat()//int setThisSampleRate, int setThisChannelCount, int setThisSampleSize, const char setThisCodec, QString setThisSampleType, QString setThisByteOrder)
+{
+    format->setSampleRate(16000);//The acquisition frequency is 1s 16000 times
+    format->setChannelCount(1);//Set to 1 channel
+    format->setSampleSize(16);//Set the sample size, 8 is also OK, but the sender and receiver must match
+    format->setCodec("audio/pcm");//Set to PCM encoding
+    format->setSampleType(QAudioFormat::SignedInt);
+    format->setByteOrder(QAudioFormat::LittleEndian);//Set the data type of Xiaowei
+    input = new QAudioInput(*format,this);
+    output = new QAudioOutput(*format,this);
 }
 
 //Receive audio data from socket and play
@@ -142,6 +145,7 @@ void MainWindow::stopStream()
 //"İf statements" are declared here for different combinations of comboBoxes and buttons
 void MainWindow::on_pushButton_clicked(bool checked)
 {
+    MainWindow::setAudioFormat();
     if (ui->comboBox->currentText() == "Sender"
             && (ui->comboBox_2->currentText() == "Unicast")
             && ui->comboBox_3->currentText() == "File Stream"
