@@ -34,7 +34,7 @@ public:
         int lensRecv;
     };
 
-    void lastUpdatedFormatFileRead();
+    bool lastUpdatedFormatFileRead();
     void setAudioFormat();//int setThisSampleRate, int setThisChannelCount, int setThisSampleSize, const char setThisCodec, QString setThisSampleType, QString setThisByteOrder);
     void makeUIElementsInvisible();
     void stopStream();

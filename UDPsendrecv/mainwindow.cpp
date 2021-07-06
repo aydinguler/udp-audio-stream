@@ -25,33 +25,50 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::lastUpdatedFormatFileRead()
+bool MainWindow::lastUpdatedFormatFileRead()
 {
     lastUpdatedFormatFile->setFileName(QCoreApplication::applicationDirPath() + "/lastUpdatedFormatSettings.txt");
+    QString keepFormatInfo;
     if (!lastUpdatedFormatFile->open(QIODevice::ReadOnly))
     {
         QMessageBox msgBox;
         msgBox.setText("There are no predefined format settings. Please specify the format with the settings button.");
         msgBox.exec();
-        return;
+        return 0;
     }
-    QString keepFormatInfo;
-    keepFormatInfo.append(lastUpdatedFormatFile->readLine());
-    pieces = keepFormatInfo.split(QRegExp(" "), Qt::SkipEmptyParts);
-    lastUpdatedFormatFile->close();
+    else{
+        keepFormatInfo.append(lastUpdatedFormatFile->readLine());
+        pieces = keepFormatInfo.split(QRegExp(" "), Qt::SkipEmptyParts);
+        lastUpdatedFormatFile->close();
+        return 1;
+    }
 }
 
 void MainWindow::setAudioFormat()//int setThisSampleRate, int setThisChannelCount, int setThisSampleSize, const char setThisCodec, QString setThisSampleType, QString setThisByteOrder)
 {
-    MainWindow::lastUpdatedFormatFileRead();
-    format->setSampleRate(pieces[0].toInt());//The acquisition frequency is 1s 16000 times
-    format->setChannelCount(pieces[1].toInt());//Set to 1 channel
-    format->setSampleSize(pieces[2].toInt());//Set the sample size, 8 is also OK, but the sender and receiver must match
-    format->setCodec("audio/pcm");//Set to PCM encoding
-    format->setSampleType(QAudioFormat::SignedInt);
-    format->setByteOrder(QAudioFormat::LittleEndian);//Set the data type of Xiaowei
-    input = new QAudioInput(*format,this);
-    output = new QAudioOutput(*format,this);
+    if (MainWindow::lastUpdatedFormatFileRead() == 1){
+        format->setSampleRate(pieces[0].toInt());//The acquisition frequency is 1s 16000 times
+        format->setChannelCount(pieces[1].toInt());//Set to 1 channel
+        format->setSampleSize(pieces[2].toInt());//Set the sample size, 8 is also OK, but the sender and receiver must match
+        format->setCodec("audio/pcm");//Set to PCM encoding
+        if(pieces[4]=="SignedInt"){
+            format->setSampleType(QAudioFormat::SignedInt);
+        }
+        else if(pieces[4]=="UnSignedInt"){
+            format->setSampleType(QAudioFormat::UnSignedInt);
+        }
+        else if(pieces[4]=="Float"){
+            format->setSampleType(QAudioFormat::Float);
+        }
+        if(pieces[5]=="LittleEndian"){
+            format->setByteOrder(QAudioFormat::LittleEndian);//Set the data type of Xiaowei
+        }
+        else if(pieces[5]=="BigEndian"){
+            format->setByteOrder(QAudioFormat::BigEndian);//Set the data type of Xiaowei
+        }
+        input = new QAudioInput(*format,this);
+        output = new QAudioOutput(*format,this);
+    }
 }
 
 //Receive audio data from socket and play
