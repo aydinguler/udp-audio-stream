@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent)
     senderSocket = new QUdpSocket(this);
     socket = new QUdpSocket(this);
     file = new QFile(this);
+    lastUpdatedFormatFile = new QFile(this);
     format = new QAudioFormat();//Define the type of audio processing
 
     MainWindow::makeUIElementsInvisible();
@@ -24,11 +25,28 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::lastUpdatedFormatFileRead()
+{
+    lastUpdatedFormatFile->setFileName(QCoreApplication::applicationDirPath() + "/lastUpdatedFormatSettings.txt");
+    if (!lastUpdatedFormatFile->open(QIODevice::ReadOnly))
+    {
+        QMessageBox msgBox;
+        msgBox.setText("There are no predefined format settings. Please specify the format with the settings button.");
+        msgBox.exec();
+        return;
+    }
+    QString keepFormatInfo;
+    keepFormatInfo.append(lastUpdatedFormatFile->readLine());
+    pieces = keepFormatInfo.split(QRegExp(" "), Qt::SkipEmptyParts);
+    lastUpdatedFormatFile->close();
+}
+
 void MainWindow::setAudioFormat()//int setThisSampleRate, int setThisChannelCount, int setThisSampleSize, const char setThisCodec, QString setThisSampleType, QString setThisByteOrder)
 {
-    format->setSampleRate(16000);//The acquisition frequency is 1s 16000 times
-    format->setChannelCount(1);//Set to 1 channel
-    format->setSampleSize(16);//Set the sample size, 8 is also OK, but the sender and receiver must match
+    MainWindow::lastUpdatedFormatFileRead();
+    format->setSampleRate(pieces[0].toInt());//The acquisition frequency is 1s 16000 times
+    format->setChannelCount(pieces[1].toInt());//Set to 1 channel
+    format->setSampleSize(pieces[2].toInt());//Set the sample size, 8 is also OK, but the sender and receiver must match
     format->setCodec("audio/pcm");//Set to PCM encoding
     format->setSampleType(QAudioFormat::SignedInt);
     format->setByteOrder(QAudioFormat::LittleEndian);//Set the data type of Xiaowei
