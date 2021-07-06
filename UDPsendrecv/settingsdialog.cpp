@@ -35,8 +35,8 @@ void settingsDialog::on_pushButton_clicked()
     out << ui->comboBox_2->currentText()+" ";
     out << ui->comboBox_3->currentText()+" ";
     out << ui->comboBox_4->currentText()+" ";
-    out << "QAudioFormat::"+ui->comboBox_5->currentText()+" ";
-    out << "QAudioFormat::"+ui->comboBox_6->currentText();
+    out << ui->comboBox_5->currentText()+" ";
+    out << ui->comboBox_6->currentText();
     fileFormatInfo->close();
     settingsDialog::close();
 }
