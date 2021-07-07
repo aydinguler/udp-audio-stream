@@ -46,29 +46,28 @@ bool MainWindow::lastUpdatedFormatFileRead()
 
 void MainWindow::setAudioFormat()//int setThisSampleRate, int setThisChannelCount, int setThisSampleSize, const char setThisCodec, QString setThisSampleType, QString setThisByteOrder)
 {
-    if (MainWindow::lastUpdatedFormatFileRead() == 1){
-        format->setSampleRate(pieces[0].toInt());//The acquisition frequency is 1s 16000 times
-        format->setChannelCount(pieces[1].toInt());//Set to 1 channel
-        format->setSampleSize(pieces[2].toInt());//Set the sample size, 8 is also OK, but the sender and receiver must match
-        format->setCodec("audio/pcm");//Set to PCM encoding
-        if(pieces[4]=="SignedInt"){
-            format->setSampleType(QAudioFormat::SignedInt);
-        }
-        else if(pieces[4]=="UnSignedInt"){
-            format->setSampleType(QAudioFormat::UnSignedInt);
-        }
-        else if(pieces[4]=="Float"){
-            format->setSampleType(QAudioFormat::Float);
-        }
-        if(pieces[5]=="LittleEndian"){
-            format->setByteOrder(QAudioFormat::LittleEndian);//Set the data type of Xiaowei
-        }
-        else if(pieces[5]=="BigEndian"){
-            format->setByteOrder(QAudioFormat::BigEndian);//Set the data type of Xiaowei
-        }
-        input = new QAudioInput(*format,this);
-        output = new QAudioOutput(*format,this);
+    MainWindow::lastUpdatedFormatFileRead();
+    format->setSampleRate(pieces[0].toInt());//The acquisition frequency is 1s 16000 times
+    format->setChannelCount(pieces[1].toInt());//Set to 1 channel
+    format->setSampleSize(pieces[2].toInt());//Set the sample size, 8 is also OK, but the sender and receiver must match
+    format->setCodec("audio/pcm");//Set to PCM encoding
+    if(pieces[4]=="SignedInt"){
+        format->setSampleType(QAudioFormat::SignedInt);
     }
+    else if(pieces[4]=="UnSignedInt"){
+        format->setSampleType(QAudioFormat::UnSignedInt);
+    }
+    else if(pieces[4]=="Float"){
+        format->setSampleType(QAudioFormat::Float);
+    }
+    if(pieces[5]=="LittleEndian"){
+        format->setByteOrder(QAudioFormat::LittleEndian);//Set the data type of Xiaowei
+    }
+    else if(pieces[5]=="BigEndian"){
+        format->setByteOrder(QAudioFormat::BigEndian);//Set the data type of Xiaowei
+    }
+    input = new QAudioInput(*format,this);
+    output = new QAudioOutput(*format,this);
 }
 
 //Receive audio data from socket and play
@@ -80,7 +79,7 @@ void MainWindow::readyRead()
     QHostAddress sender;
     quint16 senderPort;
     socket->readDatagram((char*)&ap,sizeof(ap),&sender,&senderPort);
-    outputDevice->write(ap.audioDataRecv,ap.lensRecv);
+    IODevice->write(ap.audioDataRecv,ap.lensRecv);
     ui->textBrowser->setPlainText("Message from: "+sender.toString()+"\n"+
                                   "Message port: "+QString::number(senderPort)+"\n"+
                                   "Message size:"+QString::number(ap.lensRecv)+"\n"+
@@ -98,8 +97,8 @@ void MainWindow::onReadyReadFileStream()
     audioSend ap;
     memset(&ap,0,sizeof(ap));
     QByteArray dummy;
-    dummy = inputDevice->readAll();
-    ap.lensSend = file->read(ap.audioDataSend,1280);//Read audio
+    dummy = IODevice->readAll();
+    ap.lensSend = file->read(ap.audioDataSend,format->bytesForFrames(format->framesForDuration(40000)));//Read audio
     //qDebug() << ap.lensSend;
     ui->textBrowser->setPlainText(ap.audioDataSend);
     senderSocket->writeDatagram((const char*)&ap,sizeof(ap),*targetAddress,*targetPort);
@@ -112,7 +111,7 @@ void MainWindow::onReadyReadLiveStream()
     qDebug()<<"It's sending audio!"<<Qt::endl;
     audioSend ap;
     memset(&ap,0,sizeof(ap));
-    ap.lensSend = inputDevice->read(ap.audioDataSend,1280);//Read audio
+    ap.lensSend = IODevice->read(ap.audioDataSend,format->bytesForFrames(format->framesForDuration(40000)));//Read audio
     //qDebug() << ap.lensSend;
     ui->textBrowser->setPlainText(ap.audioDataSend);
     senderSocket->writeDatagram((const char*)&ap,sizeof(ap),*targetAddress,*targetPort);
@@ -138,9 +137,9 @@ bool MainWindow::fileOpen()
         QMessageBox msgBox;
         msgBox.setText("Choose a file to start streaming");
         msgBox.exec();
-        return 1;
+        return 0;
     }
-    return 0;
+    return 1;
 }
 
 QString MainWindow::getIPAddressFromUser()
@@ -167,15 +166,36 @@ void MainWindow::setIPAdressAndPortNumber(QString giveThisTargetAddress, quint16
 //Stop everyting until restart
 void MainWindow::stopStream()
 {
-    file->close();
-    socket->close();
-    senderSocket->close();
-    output->stop();
-    input->stop();
-    ui->pushButton->setChecked(false);
-    ui->pushButton->setText("Start");
-    ui->pushButton_3->setChecked(false);
-    ui->pushButton_3->setText("Pause");
+    //disconnect(inputDevice, SIGNAL(readyRead()), 0, 0);
+    //disconnect(socket, SIGNAL(readyRead()),this,SLOT(readyRead()));
+    if(file->isOpen()){
+        file->close();
+    }
+    else if(IODevice->isOpen()){
+        IODevice->close();
+    }
+    else if(socket->state()==QAbstractSocket::BoundState){
+        socket->leaveMulticastGroup(QHostAddress("224.0.0.2"));//Leave the multicast group ip: 224.0.0.2
+    }
+    else if(socket->isOpen()){
+        socket->disconnect();
+        socket->disconnectFromHost();
+        socket->close();
+        socket->deleteLater();
+    }
+    else if(senderSocket->isOpen()){
+        senderSocket->disconnect();
+        senderSocket->disconnectFromHost();
+        senderSocket->close();
+        senderSocket->deleteLater();
+    }
+    else if(!(input->state()==QAudio::StoppedState)){
+        input->stop();
+    }
+    else if(!(output->state()==QAudio::StoppedState)){
+        output->stop();
+    }
+    return;
 }
 
 //"İf statements" are declared here for different combinations of comboBoxes and buttons
@@ -186,62 +206,66 @@ void MainWindow::on_pushButton_clicked(bool checked)
             && (ui->comboBox_2->currentText() == "Unicast")
             && ui->comboBox_3->currentText() == "File Stream"
             && ui->pushButton->isChecked()==true
-            && MainWindow::fileOpen()==0)
+            && MainWindow::fileOpen()==1
+            && MainWindow::lastUpdatedFormatFileRead()==1)
     {
-        //MainWindow::fileOpen();
         MainWindow::setIPAdressAndPortNumber(MainWindow::getIPAddressFromUser(),45000);
-        inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
-        connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyReadFileStream()));//Slot function, when inputDevice receives the audio data written by input,
+        IODevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
+        connect(IODevice,SIGNAL(readyRead()),this,SLOT(onReadyReadFileStream()));//Slot function, when inputDevice receives the audio data written by input,
         ui->pushButton->setText("Stop");                                  //it calls the onReadyRead function to send the data to the target host
     }
     else if (ui->comboBox->currentText() == "Sender"
              && (ui->comboBox_2->currentText() == "Multicast")
              && ui->comboBox_3->currentText() == "File Stream"
              && ui->pushButton->isChecked()==true
-             && MainWindow::fileOpen()==0)
+             && MainWindow::fileOpen()==1
+             && MainWindow::lastUpdatedFormatFileRead()==1)
     {
-        //MainWindow::fileOpen();
         MainWindow::setIPAdressAndPortNumber("224.0.0.2",9999);
-        inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
-        connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyReadFileStream()));//Slot function, when inputDevice receives the audio data written by input,
+        IODevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
+        connect(IODevice,SIGNAL(readyRead()),this,SLOT(onReadyReadFileStream()));//Slot function, when inputDevice receives the audio data written by input,
         ui->pushButton->setText("Stop");                                  //it calls the onReadyRead function to send the data to the target host
     }
     else if (ui->comboBox->currentText() == "Sender"
             && (ui->comboBox_2->currentText() == "Unicast")
             && ui->comboBox_3->currentText() == "Live Stream"
-            && ui->pushButton->isChecked()==true)
+            && ui->pushButton->isChecked()==true
+            && MainWindow::lastUpdatedFormatFileRead()==1)
     {
         //MainWindow::fileOpen();
         MainWindow::setIPAdressAndPortNumber(MainWindow::getIPAddressFromUser(),45000);
-        inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
-        connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyReadLiveStream()));//Slot function, when inputDevice receives the audio data written by input,
+        IODevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
+        connect(IODevice,SIGNAL(readyRead()),this,SLOT(onReadyReadLiveStream()));//Slot function, when inputDevice receives the audio data written by input,
         ui->pushButton->setText("Stop");                                  //it calls the onReadyRead function to send the data to the target host
     }
     else if (ui->comboBox->currentText() == "Sender"
              && (ui->comboBox_2->currentText() == "Multicast")
              && ui->comboBox_3->currentText() == "Live Stream"
-             && ui->pushButton->isChecked()==true)
+             && ui->pushButton->isChecked()==true
+             && MainWindow::lastUpdatedFormatFileRead()==1)
     {
         //MainWindow::fileOpen();
         MainWindow::setIPAdressAndPortNumber("224.0.0.2",9999);
-        inputDevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
-        connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyReadLiveStream()));//Slot function, when inputDevice receives the audio data written by input,
+        IODevice = input->start();//input starts to read the input audio signal and writes it into QIODevice, here is inputDevice
+        connect(IODevice,SIGNAL(readyRead()),this,SLOT(onReadyReadLiveStream()));//Slot function, when inputDevice receives the audio data written by input,
         ui->pushButton->setText("Stop");                                  //it calls the onReadyRead function to send the data to the target host
     }
     else if (ui->comboBox->currentText() == "Receiver"
              && ui->comboBox_2->currentText() == "Unicast"
-             && ui->pushButton->isChecked()==true)
+             && ui->pushButton->isChecked()==true
+             && MainWindow::lastUpdatedFormatFileRead()==1)
     {
-        outputDevice = output->start();//Start playing
+        IODevice = output->start();//Start playing
         socket->bind(QHostAddress::AnyIPv4,45000);
         connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));//Slot function, when socket has data sent by onReadyRead function,
         ui->pushButton->setText("Stop");                           //it calls the readyRead function to receive the data
     }
     else if (ui->comboBox->currentText() == "Receiver"
              && ui->comboBox_2->currentText() == "Multicast"
-             && ui->pushButton->isChecked()==true)
+             && ui->pushButton->isChecked()==true
+             && MainWindow::lastUpdatedFormatFileRead()==1)
     {
-        outputDevice = output->start();//Start playing
+        IODevice = output->start();//Start playing
         socket->bind(QHostAddress(QHostAddress::AnyIPv4),9999,QUdpSocket::ReuseAddressHint|QUdpSocket::ShareAddress);
         socket->joinMulticastGroup(QHostAddress("224.0.0.2"));//Join the multicast group ip: 224.0.0.2
         connect(socket,SIGNAL(readyRead()),this,SLOT(readyRead()));//Slot function, when socket has data sent by onReadyRead function,
@@ -264,7 +288,10 @@ void MainWindow::on_pushButton_clicked(bool checked)
         msgBox.exec();
     }
     else{
-        socket->leaveMulticastGroup(QHostAddress("224.0.0.2"));//Leave the multicast group ip: 224.0.0.2
+        ui->pushButton->setChecked(false);
+        ui->pushButton->setText("Start");
+        ui->pushButton_3->setChecked(false);
+        ui->pushButton_3->setText("Pause");
         MainWindow::stopStream();
     }
     qDebug() << checked;
@@ -292,8 +319,8 @@ void MainWindow::on_pushButton_3_clicked()
             && ui->pushButton->isChecked()==true
             && ui->pushButton_3->isChecked()==false)
     {
-        inputDevice = input->start();
-        connect(inputDevice,SIGNAL(readyRead()),this,SLOT(onReadyReadFileStream()));
+        IODevice = input->start();
+        connect(IODevice,SIGNAL(readyRead()),this,SLOT(onReadyReadFileStream()));
         ui->pushButton_3->setText("Pause");
     }
     else if(ui->comboBox->currentText() == "Receiver"
