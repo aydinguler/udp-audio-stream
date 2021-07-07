@@ -65,7 +65,7 @@ private:
     QAudioDecoder *decoder;
     QAudioInput *input;
     QAudioOutput *output;
-    QIODevice *inputDevice, *outputDevice;
+    QIODevice *IODevice;
     QUdpSocket  *socket;
     QUdpSocket *senderSocket;
     QHostAddress *targetAddress;
