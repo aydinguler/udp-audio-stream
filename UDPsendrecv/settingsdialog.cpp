@@ -37,6 +37,7 @@ void settingsDialog::on_pushButton_clicked()
     out << ui->comboBox_4->currentText()+" ";
     out << ui->comboBox_5->currentText()+" ";
     out << ui->comboBox_6->currentText();
+    out.flush();
     fileFormatInfo->close();
     settingsDialog::close();
 }
