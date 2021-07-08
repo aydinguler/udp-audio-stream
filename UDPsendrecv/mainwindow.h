@@ -62,6 +62,8 @@ private:
     QAudioFormat *format;
     QFile *file;
     QFile *lastUpdatedFormatFile;
+    QAudioDeviceInfo *infoInput;
+    QAudioDeviceInfo *infoOutput;
     QAudioDecoder *decoder;
     QAudioInput *input;
     QAudioOutput *output;
