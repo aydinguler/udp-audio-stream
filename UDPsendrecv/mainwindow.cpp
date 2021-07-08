@@ -9,6 +9,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    mySettingsDialog = new settingsDialog(this);
+
     senderSocket = new QUdpSocket(this);
     socket = new QUdpSocket(this);
     file = new QFile(this);
@@ -48,7 +50,7 @@ bool MainWindow::lastUpdatedFormatFileRead()
     }
 }
 
-void MainWindow::setAudioFormat()//int setThisSampleRate, int setThisChannelCount, int setThisSampleSize, const char setThisCodec, QString setThisSampleType, QString setThisByteOrder)
+void MainWindow::setAudioFormat()
 {
     if(MainWindow::lastUpdatedFormatFileRead()==1){
         format->setSampleRate(pieces[0].toInt());//The acquisition frequency is 1s 16000 times
@@ -98,10 +100,6 @@ void MainWindow::readyRead()
                                   "Message port: "+QString::number(senderPort)+"\n"+
                                   "Message size:"+QString::number(ap.lensRecv)+"\n"+
                                   "Message data:"+ap.audioDataRecv+"\n");
-    //qDebug() << "Message from: " << sender.toString();
-    //qDebug() << "Message port: " << QString::number(senderPort);
-    //qDebug() << "Message size: " << QString::number(ap.lensRecv);
-    //qDebug() << "Message data: " << ap.audioDataRecv;
 }
 
 //Read audio data from file and send it
@@ -126,7 +124,6 @@ void MainWindow::onReadyReadLiveStream()
     audioSend ap;
     memset(&ap,0,sizeof(ap));
     ap.lensSend = IODevice->read(ap.audioDataSend,format->bytesForFrames(format->framesForDuration(40000)));//Read audio
-    //qDebug() << ap.lensSend;
     ui->textBrowser->setPlainText(ap.audioDataSend);
     senderSocket->writeDatagram((const char*)&ap,sizeof(ap),*targetAddress,*targetPort);
     //Send this structure to the target host, the port and the IP are declared in the if statements
@@ -413,7 +410,7 @@ void MainWindow::on_comboBox_activated()
 
 void MainWindow::on_actionOptions_triggered()
 {
-    mySettingsDialog = new settingsDialog(this);
+
     mySettingsDialog->show();
 }
 

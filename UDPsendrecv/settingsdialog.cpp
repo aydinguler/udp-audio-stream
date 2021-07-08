@@ -41,12 +41,3 @@ void settingsDialog::on_pushButton_clicked()
     fileFormatInfo->close();
     settingsDialog::close();
 }
-
-    /*!
-    out << "Sample Rate: " + ui->comboBox->currentText() << Qt::endl;
-    out << "Channel Count: " + ui->comboBox_2->currentText() << Qt::endl;
-    out << "Sample Size: " + ui->comboBox_3->currentText() << Qt::endl;
-    out << "Codec: " + ui->comboBox_4->currentText() << Qt::endl;
-    out << "Sample Type: " + ui->comboBox_5->currentText() << Qt::endl;
-    out << "Byte Order: " + ui->comboBox_6->currentText() << Qt::endl;
-    */
